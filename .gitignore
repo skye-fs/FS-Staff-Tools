@@ -1,0 +1,10 @@
+.env
+accounts.json
+discord_activity.json
+payout_dates.json
+dist/
+.idea/
+build/
+venv/
+main.spec
+run.spec

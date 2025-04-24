@@ -4,10 +4,7 @@ import os
 from discord import app_commands
 
 EVENTS_FILE = 'event_records.json'
-
-
 def load_event_data():
-    # If file doesn't exist or is empty, initialize with base structure
     if not os.path.exists(EVENTS_FILE) or os.path.getsize(EVENTS_FILE) == 0:
         with open(EVENTS_FILE, 'w') as f:
             json.dump({"events": []}, f, indent=2)
@@ -16,11 +13,9 @@ def load_event_data():
         with open(EVENTS_FILE, 'r') as f:
             return json.load(f)
     except json.JSONDecodeError:
-        # If the file is corrupted or not proper JSON, reinitialize
         with open(EVENTS_FILE, 'w') as f:
             json.dump({"events": []}, f, indent=2)
         return {"events": []}
-
 
 def format_event_list(event_list):
     if not event_list:

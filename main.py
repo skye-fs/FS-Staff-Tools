@@ -13,13 +13,14 @@ from get_discord_activity import get_discord_activity
 from payout_dates import payout_dates
 from event_records import view_events
 from record_event import record_event
+from events_details import event_details
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
 GUILD_IDS = [
-    785816801602830346,
-    873228748458188841
+    873228748458188841,
+    785816801602830346
 ]
 class Client(commands.Bot):
     async def on_ready(self):
@@ -42,6 +43,7 @@ class Client(commands.Bot):
                 self.tree.add_command(payout_dates, guild=guild)
                 self.tree.add_command(view_events, guild=guild)
                 self.tree.add_command(record_event, guild=guild)
+                self.tree.add_command(event_details, guild=guild)
 
             synced = await self.tree.sync(guild=guild)
             print(f"Synced {len(synced)} commands to guilds ({', '.join(f'{g.id} - {g.name}' for g in self.guilds if g.id in GUILD_IDS)})")

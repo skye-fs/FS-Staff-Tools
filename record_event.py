@@ -25,19 +25,19 @@ def save_event_data(data):
 
 @app_commands.command(name="record-event", description="Record a new GM event.")
 @app_commands.describe(
-    event_type="Provide event type (Trivia, Hide and Seek, Where am I",
-    winners="Winners in format: playerName:Reward name + ID, playerName:Reward name + ID"
+    event_type="Select the type of event",
+    winners="Winners in format PlayerName:Reward Name + ItemID (Skye:Some Item 500). Separate winners with commas"
 )
+@app_commands.choices(event_type=[
+    app_commands.Choice(name="Trivia", value="Trivia"),
+    app_commands.Choice(name="Hide and Seek", value="Hide and Seek"),
+    app_commands.Choice(name="Where am I", value="Where am I")
+])
 async def record_event(
     interaction: discord.Interaction,
-    event_type: str,
+    event_type: app_commands.Choice[str],
     winners: str
 ):
-    # Event Types
-    allowed_types = ["Trivia", "Hide and Seek", "Where am I"]
-    if event_type not in allowed_types:
-        await interaction.response.send_message(f"❌ Invalid event type. Choose from: {', '.join(allowed_types)}", ephemeral=True)
-        return
 
     data = load_event_data()
     event_id = len(data["events"]) + 1
@@ -60,13 +60,12 @@ async def record_event(
                 raise ValueError
         except ValueError:
             await interaction.response.send_message(
-                "❌ You must include at least one winner in the format: `playerName:Reward name + ID`", ephemeral=True)
+                "❌ You must include at least one winner in the format: `PlayerName:Reward name + ID`")
             return
 
-    # Add new event to json
     new_event = {
         "event_id": event_id,
-        "event_type": event_type,
+        "event_type": event_type.value,
         "hosted_by": host_name,
         "hosted_on": hosted_on,
         "winners": winners_list
@@ -75,4 +74,4 @@ async def record_event(
     data["events"].append(new_event)
     save_event_data(data)
 
-    await interaction.response.send_message(f"<a:done:1363613944417222788> Event **{event_type}** recorded successfully by **{host_name}**!")
+    await interaction.response.send_message(f"<a:done:1363613944417222788> Event **{event_type.value}** recorded successfully by **{host_name}**!")

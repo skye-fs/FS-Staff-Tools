@@ -2,6 +2,7 @@
 accounts.json
 discord_activity.json
 payout_dates.json
+event_records.json
 __pycache__/
 dist/
 .idea/

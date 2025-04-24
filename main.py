@@ -11,6 +11,7 @@ from generate_gm_sql import generate_gm_sql
 from wipe_donotuse import wipe_do_not_use
 from get_discord_activity import get_discord_activity
 from payout_dates import payout_dates
+from event_records import view_events
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
@@ -38,6 +39,7 @@ class Client(commands.Bot):
                 self.tree.add_command(wipe_do_not_use, guild=guild)
                 self.tree.add_command(get_discord_activity, guild=guild)
                 self.tree.add_command(payout_dates, guild=guild)
+                self.tree.add_command(view_events, guild=guild)
 
             synced = await self.tree.sync(guild=guild)
             print(f"Synced {len(synced)} commands to guilds ({', '.join(f'{g.id} - {g.name}' for g in self.guilds if g.id in GUILD_IDS)})")

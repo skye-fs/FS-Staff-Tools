@@ -1,8 +1,6 @@
-# view_staff.py
 import discord
 import json
 from discord import app_commands
-
 
 def load_account_data():
     try:
@@ -10,7 +8,6 @@ def load_account_data():
             return json.load(f)
     except FileNotFoundError:
         return {"GM": [], "QA": []}
-
 
 def format_staff_list(staff_list, include_discord=False):
     if not staff_list:
@@ -37,5 +34,5 @@ async def view_staff(interaction: discord.Interaction):
     gm_block = format_staff_list(staff_data["GM"], include_discord=True)
     qa_block = format_staff_list(staff_data["QA"])
 
-    response = f"__**GM List**__\n{gm_block}\n__**QA List**__\n{qa_block}"
+    response = f"<:felsong:1364763597770723459> __**GM List**__\n{gm_block}\n<:felsong:1364763597770723459> __**QA List**__\n{qa_block}"
     await interaction.response.send_message(response)

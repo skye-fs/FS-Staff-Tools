@@ -23,6 +23,10 @@ class Client(commands.Bot):
     async def on_ready(self):
         print(f'Logged on as {self.user}.')
 
+        # Custom status
+        activity = discord.Game("staff tools with more to come soon.")
+        await self.change_presence(status=discord.Status.online, activity=activity)
+
         try:
             for guild_id in GUILD_IDS:
                 guild = discord.Object(id=guild_id)

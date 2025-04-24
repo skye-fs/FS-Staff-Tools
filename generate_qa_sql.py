@@ -103,5 +103,20 @@ VALUES
     final_text = "<a:done:1363613944417222788> **Adding QA funds... done!**\n" + "\n".join(f"- {name} - {rewards[name]}" for name in rewards)
     await initial_msg.edit(content=final_text)
 
-    sql_output = "```sql\n" + "\n".join(sql_lines) + "```"
-    await interaction.followup.send(sql_output)
+    MAX_MESSAGE_LENGTH = 2000
+
+    def chunk_message(sql_text, prefix="```sql\n", suffix="```"):
+        chunks = []
+        current = prefix
+        for line in sql_text.splitlines(keepends=True):
+            if len(current) + len(line) + len(suffix) > MAX_MESSAGE_LENGTH:
+                chunks.append(current + suffix)
+                current = prefix + line
+            else:
+                current += line
+        chunks.append(current + suffix)
+        return chunks
+
+    sql_combined = "\n".join(sql_lines)
+    for chunk in chunk_message(sql_combined):
+        await interaction.followup.send(chunk)

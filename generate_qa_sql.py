@@ -3,7 +3,6 @@ from discord import app_commands
 import asyncio
 import json
 import os
-# Load accounts from the JSON
 def load_account_data():
     with open("accounts.json", "r") as f:
         return json.load(f)
@@ -16,7 +15,6 @@ async def generate_qa_sql(interaction: discord.Interaction):
         return m.author == interaction.user and m.channel == interaction.channel
 
     try:
-        # Verify or timeout
         month_msg = await interaction.client.wait_for("message", timeout=60.0, check=check_month)
         month_str = month_msg.content
         await month_msg.add_reaction("<a:done:1363613944417222788>")
@@ -55,7 +53,6 @@ async def generate_qa_sql(interaction: discord.Interaction):
     qa_staff = data.get("QA", [])
     rewards = {}
 
-    # Initial message
     initial_msg = await interaction.followup.send(
         "<:felcoin:1363668083742474290> Adding QA funds...\n" + "\n".join(
             f"{staff['name']} - 0{' 👈' if i == 0 else ''}"
@@ -71,7 +68,6 @@ async def generate_qa_sql(interaction: discord.Interaction):
             return m.author == interaction.user and m.channel == interaction.channel and m.content.isdigit()
 
         try:
-            # Verify or timeout
             user_msg = await interaction.client.wait_for("message", timeout=60.0, check=check_amount)
             amount = int(user_msg.content)
             rewards[name] = amount
@@ -80,7 +76,6 @@ async def generate_qa_sql(interaction: discord.Interaction):
 
             await prompt_msg.delete()
 
-            # Update initial message and loop
             updated_text = "<:felcoin:1363668083742474290> Adding QA funds...\n" + "\n".join(
                 f"{s['name']} - {rewards.get(s['name'], 0)}{' 👈' if i == index + 1 else ''}"
                 for i, s in enumerate(qa_staff)

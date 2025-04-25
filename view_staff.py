@@ -14,10 +14,11 @@ def format_staff_list(staff_list, include_discord=False):
         return "No accounts added (yet!)"
 
     if include_discord:
-        header = "Name       | PlayAcc ID | Discord ID\n"
-        divider = "-----------|------------|----------------------\n"
+        header = "Name       | PlayAcc ID | Discord ID          | Rank\n"
+        divider = "-----------|------------|---------------------|-------------------\n"
         body = "\n".join(
-            f"{s['name']:<10} | {s['id']:<10} | {s.get('discord_id', 'N/A')}" for s in staff_list
+            f"{s['name']:<10} | {s['id']:<10} | {str(s.get('discord_id', 'N/A')):<19} | {s.get('rank', 'N/A')}" for s in
+            staff_list
         )
     else:
         header = "Name       | PlayAcc ID\n"

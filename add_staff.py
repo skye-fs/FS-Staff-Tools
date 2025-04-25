@@ -19,6 +19,7 @@ def save_account_data(data):
 @app_commands.command(name="add-staff", description="Add a new staff member.")
 @app_commands.describe(
     staff_type="Select the type of staff",
+    staff_rank="Select the rank of the staff member",
     name="Enter staff name",
     playacc_id="Enter play acc ID",
     discord_id="Enter the Discord ID of the GM (optional for QA)"
@@ -27,9 +28,19 @@ def save_account_data(data):
     app_commands.Choice(name="GM", value="GM"),
     app_commands.Choice(name="QA", value="QA")
 ])
+
+@app_commands.choices(staff_rank=[
+    app_commands.Choice(name="Regular QA", value="Regular QA"),
+    app_commands.Choice(name="Regular GM", value="Regular GM"),
+    app_commands.Choice(name="Senior GM", value="Senior GM"),
+    app_commands.Choice(name="Head GM", value="Head GM"),
+    app_commands.Choice(name="Server Manager", value="Server Manager")
+])
+
 async def add_staff(
     interaction: discord.Interaction,
     staff_type: app_commands.Choice[str],
+    staff_rank: app_commands.Choice[str],
     name: str,
     playacc_id: int,
     discord_id: str = None  # discord_id is an OPTIONAL argument for QA ONLY
@@ -51,7 +62,7 @@ async def add_staff(
 
     data = load_account_data()
 
-    new_entry = {"name": name, "id": playacc_id}
+    new_entry = {"name": name, "id": playacc_id, "rank": staff_rank.value}
     if discord_id:
         new_entry["discord_id"] = discord_id  # Only add discord_id if provided
 

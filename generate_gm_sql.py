@@ -7,8 +7,7 @@ import os
 ACCOUNTS_FILE = "accounts.json"
 ACTIVITY_FILE = "discord_activity.json"
 
-BASE_AMOUNT = 300
-BONUS_IF_MET_QUOTA = 375
+BONUS_IF_MET_QUOTA = 600 # SUBJECT TO CHANGE
 
 def load_account_data():
     if not os.path.exists(ACCOUNTS_FILE):
@@ -77,6 +76,13 @@ async def generate_gm_sql(interaction: discord.Interaction):
     for index, gm in enumerate(gm_entries):
         name = gm["name"]
         acc_id = gm["id"]
+        rank = gm["rank"]
+        BASE_AMOUNT = {
+            "Regular GM": 400,
+            "Senior GM": 800,
+            "Head GM": 1600,
+            "Server Manager": 2500
+        }[rank]
         discord_id = str(gm.get("discord_id", ""))
         discord_messages = discord_activity.get(discord_id, 0)
 
@@ -102,7 +108,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             quota_bonus = 0
         await quota_prompt.delete()
 
-        total = round(BASE_AMOUNT + (ticket_count * 1.2) + (discord_messages * 1.5) + quota_bonus)
+        total = round(BASE_AMOUNT + (ticket_count * 3) + (discord_messages * 1.5) + quota_bonus)
 
         rewards.append({
             "name": name,
@@ -110,6 +116,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             "ticket_count": ticket_count,
             "discord_messages": discord_messages,
             "quota_bonus": quota_bonus,
+            "base_amount": BASE_AMOUNT,
             "total": total
         })
 
@@ -138,6 +145,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             f"Tickets: `{r['ticket_count']}`\n"
             f"Discord: `{r['discord_messages']}`\n"
             f"Quota Bonus: `{r['quota_bonus']}`\n"
+            f"Rank Bonus: `{r['base_amount']}`\n"
             f"Total: `{r['total']}`\n"
         )
     await interaction.followup.send("\n".join(summary))

@@ -19,8 +19,9 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
 GUILD_IDS = [
-    873228748458188841,
-    785816801602830346
+    785816801602830346,
+    873228748458188841
+
 ]
 class Client(commands.Bot):
     async def on_ready(self):

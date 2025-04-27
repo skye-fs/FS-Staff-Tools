@@ -7,7 +7,7 @@ import os
 ACCOUNTS_FILE = "accounts.json"
 ACTIVITY_FILE = "discord_activity.json"
 
-BONUS_IF_MET_QUOTA = 600 # SUBJECT TO CHANGE
+BONUS_IF_MET_QUOTA = 600  # SUBJECT TO CHANGE
 
 def load_account_data():
     if not os.path.exists(ACCOUNTS_FILE):
@@ -23,7 +23,7 @@ def load_discord_activity():
 
 @app_commands.command(name="generate-gm-sql", description="Generate SQL statements for GMs.")
 async def generate_gm_sql(interaction: discord.Interaction):
-    await interaction.response.send_message("🗓️ Enter the **month/period** (e.g. `Mar-12 to Apr-15`) for this GM reward distribution:")
+    await interaction.response.send_message("🗓️ Enter the **month/period** (e.g. Mar-12 to Apr-15) for this GM reward distribution:")
 
     def check(msg):
         return msg.author == interaction.user and msg.channel == interaction.channel
@@ -32,31 +32,27 @@ async def generate_gm_sql(interaction: discord.Interaction):
         period_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
         month_str = period_msg.content.strip()
         await period_msg.add_reaction("<a:done:1363613944417222788>")
+
         payout_file = "payout_dates.json"
-        try:
-            payout_data = {"GM": [], "QA": []}
+        payout_data = {"GM": [], "QA": []}
 
-            if os.path.exists(payout_file):
-                with open(payout_file, "r") as f:
-                    try:
-                        payout_data = json.load(f)
-                        if not isinstance(payout_data, dict) or "GM" not in payout_data or "QA" not in payout_data:
-                            payout_data = {"GM": [], "QA": []}
-                    except json.JSONDecodeError:
+        if os.path.exists(payout_file):
+            with open(payout_file, "r") as f:
+                try:
+                    payout_data = json.load(f)
+                    if not isinstance(payout_data, dict) or "GM" not in payout_data or "QA" not in payout_data:
                         payout_data = {"GM": [], "QA": []}
+                except json.JSONDecodeError:
+                    payout_data = {"GM": [], "QA": []}
 
-            gm_id = len(payout_data["GM"]) + 1
+        gm_id = len(payout_data["GM"]) + 1
+        payout_data["GM"].append({
+            "id": gm_id,
+            "payout_date": month_str
+        })
 
-            payout_data["GM"].append({
-                "id": gm_id,
-                "payout_date": month_str
-            })
-
-            with open(payout_file, "w") as f:
-                json.dump(payout_data, f, indent=2)
-
-        except Exception as e:
-            print(f"Error writing to {payout_file}: {e}")
+        with open(payout_file, "w") as f:
+            json.dump(payout_data, f, indent=2)
 
     except asyncio.TimeoutError:
         await interaction.followup.send("⏰ Timed out waiting for month input.")
@@ -108,7 +104,19 @@ async def generate_gm_sql(interaction: discord.Interaction):
             quota_bonus = 0
         await quota_prompt.delete()
 
-        total = round(BASE_AMOUNT + (ticket_count * 3) + (discord_messages * 1.5) + quota_bonus)
+        # Only for Server Manager: ask for Shop ticket bonus
+        shop_ticket_bonus = 0
+        if rank == "Server Manager":
+            shop_prompt = await interaction.followup.send(f"Enter **shop ticket bonus** for **{name}**:")
+            try:
+                shop_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
+                shop_ticket_bonus = int(shop_msg.content.strip())
+                await shop_msg.add_reaction("<a:done:1363613944417222788>")
+            except (asyncio.TimeoutError, ValueError):
+                shop_ticket_bonus = 0
+            await shop_prompt.delete()
+
+        total = round(BASE_AMOUNT + (ticket_count * 3) + (discord_messages * 1.5) + quota_bonus + shop_ticket_bonus)
 
         rewards.append({
             "name": name,
@@ -116,6 +124,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             "ticket_count": ticket_count,
             "discord_messages": discord_messages,
             "quota_bonus": quota_bonus,
+            "shop_ticket_bonus": shop_ticket_bonus,
             "base_amount": BASE_AMOUNT,
             "total": total
         })
@@ -145,6 +154,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             f"Tickets: `{r['ticket_count']}`\n"
             f"Discord: `{r['discord_messages']}`\n"
             f"Quota Bonus: `{r['quota_bonus']}`\n"
+            f"Shop Bonus: `{r['shop_ticket_bonus']}`\n"
             f"Rank Bonus: `{r['base_amount']}`\n"
             f"Total: `{r['total']}`\n"
         )
@@ -153,10 +163,10 @@ async def generate_gm_sql(interaction: discord.Interaction):
     # Generate SQL block
     sql_lines = []
     for r in rewards:
-        sql = f"""INSERT INTO `api_points` (`AccountID`, `Date`, `Points`, `Data`, `reference`) 
+        sql = f"""INSERT INTO api_points (AccountID, Date, Points, Data, reference) 
 VALUES
 ({r['id']}, NOW(), {r['total']},
 '{{\n  "code": "",\n  "reason": "GM Funds {month_str} {r['name']}",\n  "source": "admin",\n  "by": "{interaction.user.name}"\n}}', '');\n"""
         sql_lines.append(sql)
 
-    await interaction.followup.send("```sql\n" + "\n".join(sql_lines) + "```")
+    await interaction.followup.send("```sql\n" + "\n".join(sql_lines) + "\n```")

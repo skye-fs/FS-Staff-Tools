@@ -39,6 +39,7 @@ async def get_discord_activity(interaction: discord.Interaction):
 
         start_date = datetime.strptime(date_str, "%Y-%m-%d")
         await date_msg.add_reaction("<a:done:1363613944417222788>")
+
     except asyncio.TimeoutError:
         await interaction.followup.send("⏰ Timed out waiting for date input.")
         return
@@ -47,7 +48,7 @@ async def get_discord_activity(interaction: discord.Interaction):
     gm_entries = account_data.get("GM", [])
 
     gm_discord_ids = {str(gm["discord_id"]) for gm in gm_entries if "discord_id" in gm}
-    message_counts = {gm_id: 0 for gm_id in gm_discord_ids}
+    message_counts = {gm_id: {"support": 0, "chat": 0} for gm_id in gm_discord_ids}
 
     await interaction.followup.send("⏳ Counting messages...  This might take a while.")
 
@@ -59,11 +60,19 @@ async def get_discord_activity(interaction: discord.Interaction):
         async for msg in channel.history(after=start_date, limit=None, oldest_first=True):
             author_id = str(msg.author.id)
             if author_id in message_counts:
-                message_counts[author_id] += 1
+                if channel_id == 873265789157908510:
+                    message_counts[author_id]["support"] += 1
+                elif channel_id == 877411686192119818:
+                    message_counts[author_id]["chat"] += 1
 
     await asyncio.gather(*(count_messages_in_channel(ch_id) for ch_id in CHANNEL_IDS))
 
     save_discord_activity(message_counts)
 
-    output = "\n".join(f"<@{uid}>: {count} messages" for uid, count in message_counts.items())
-    await interaction.followup.send(f"<a:done:1363613944417222788> **Activity count complete!**\n\n{output}")
+    output_lines = []
+    for uid, counts in message_counts.items():
+        output_lines.append(f"<@{uid}>: {counts['support']} support / {counts['chat']} chat")
+
+    output_text = "\n".join(output_lines)
+
+    await interaction.followup.send(f"<a:done:1363613944417222788> **Activity count complete!**\n\n{output_text}")

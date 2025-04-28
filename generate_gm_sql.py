@@ -80,7 +80,10 @@ async def generate_gm_sql(interaction: discord.Interaction):
             "Server Manager": 2500
         }[rank]
         discord_id = str(gm.get("discord_id", ""))
-        discord_messages = discord_activity.get(discord_id, 0)
+
+        # Extract support/chat msgs
+        support_message = discord_activity.get(discord_id, {}).get("support", 0)
+        chat_message = discord_activity.get(discord_id, {}).get("chat", 0)
 
         # Ask for ticket count
         ticket_prompt = await interaction.followup.send(f"🎟️ Enter ticket count for **{name}**:")
@@ -116,13 +119,15 @@ async def generate_gm_sql(interaction: discord.Interaction):
                 shop_ticket_bonus = 0
             await shop_prompt.delete()
 
-        total = round(BASE_AMOUNT + (ticket_count * 3) + (discord_messages * 1.5) + quota_bonus + shop_ticket_bonus)
+        # Formula, modify accordingly with caution!!!!!!!!!!!!
+        total = round(BASE_AMOUNT + (ticket_count * 3) + (support_message * 1.5) + (chat_message * 0.2) + quota_bonus + shop_ticket_bonus)
 
         rewards.append({
             "name": name,
             "id": acc_id,
             "ticket_count": ticket_count,
-            "discord_messages": discord_messages,
+            "support_message": support_message,
+            "chat_message": chat_message,
             "quota_bonus": quota_bonus,
             "shop_ticket_bonus": shop_ticket_bonus,
             "base_amount": BASE_AMOUNT,
@@ -152,7 +157,8 @@ async def generate_gm_sql(interaction: discord.Interaction):
         summary.append(
             f"**{r['name']}**\n"
             f"Tickets: `{r['ticket_count']}`\n"
-            f"Discord: `{r['discord_messages']}`\n"
+            f"Support Messages: `{r['support_message']}`\n"
+            f"Chat Messages: `{r['chat_message']}`\n"
             f"Quota Bonus: `{r['quota_bonus']}`\n"
             f"Shop Bonus: `{r['shop_ticket_bonus']}`\n"
             f"Rank Bonus: `{r['base_amount']}`\n"

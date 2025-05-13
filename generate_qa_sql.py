@@ -72,8 +72,7 @@ async def generate_qa_sql(interaction: discord.Interaction):
             amount = int(user_msg.content)
             rewards[name] = amount
 
-            await user_msg.add_reaction("<a:done:1363613944417222788>")
-
+            await user_msg.delete()
             await prompt_msg.delete()
 
             updated_text = "<:felcoin:1363668083742474290> Adding QA funds...\n" + "\n".join(
@@ -93,7 +92,7 @@ async def generate_qa_sql(interaction: discord.Interaction):
         name = staff["name"]
         acc_id = staff["id"]
         amount = rewards.get(name, 0)
-        if amount >= 0:
+        if amount > 0:
             sql = f"""INSERT INTO `api_points` (`AccountID`, `Date`, `Points`, `Data`, `reference`) 
 VALUES
 ({acc_id}, NOW(), {amount},

@@ -53,8 +53,7 @@ async def view_reward_history(interaction: discord.Interaction, role: str):
                     )
                 else:  # QA
                     result_lines.append(
-                        f"**{entry['name']}**\n"
-                        f"Reward Amount: `{entry['total']}`\n"
+                        f"**{entry['name']}** – Reward: `{entry.get('total', 0)}`"
                     )
 
             await interaction2.response.send_message("\n".join(result_lines), ephemeral=False)

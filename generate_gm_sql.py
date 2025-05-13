@@ -107,6 +107,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             quota_bonus = 0
         await quota_prompt.delete()
 
+
         # Only for Server Manager: ask for Shop ticket bonus
         shop_ticket_bonus = 0
         if rank == "Server Manager":
@@ -119,8 +120,19 @@ async def generate_gm_sql(interaction: discord.Interaction):
                 shop_ticket_bonus = 0
             await shop_prompt.delete()
 
+        # Extra work
+        extra_work_bonus = 0
+        extra_prompt = await interaction.followup.send(f"Enter **extra work bonus** for **{name}** (or `0` if none):")
+        try:
+            extra_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
+            extra_work_bonus = int(extra_msg.content.strip())
+            await extra_msg.delete()
+        except (asyncio.TimeoutError, ValueError):
+            extra_work_bonus = 0
+        await extra_prompt.delete()
+
         # Formula, modify accordingly with caution!!!!!!!!!!!!
-        total = round(BASE_AMOUNT + (ticket_count * 3) + (support_message * 1.5) + (chat_message * 0.2) + quota_bonus + shop_ticket_bonus)
+        total = round(BASE_AMOUNT + (ticket_count * 3) + (support_message * 1.5) + (chat_message * 0.2) + quota_bonus + shop_ticket_bonus + extra_work_bonus)
 
         rewards.append({
             "name": name,
@@ -131,7 +143,8 @@ async def generate_gm_sql(interaction: discord.Interaction):
             "quota_bonus": quota_bonus,
             "shop_ticket_bonus": shop_ticket_bonus,
             "base_amount": BASE_AMOUNT,
-            "total": total
+            "total": total,
+            "extra_work_bonus": extra_work_bonus,
         })
 
         # Update progress
@@ -161,6 +174,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             f"Chat Messages: `{r['chat_message']}`\n"
             f"Quota Bonus: `{r['quota_bonus']}`\n"
             f"Shop Bonus: `{r['shop_ticket_bonus']}`\n"
+            f"Extra Work Bonus: `{r['extra_work_bonus']}`\n"
             f"Rank Bonus: `{r['base_amount']}`\n"
             f"Total: `{r['total']}`\n"
         )

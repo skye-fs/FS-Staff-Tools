@@ -131,8 +131,20 @@ VALUES
     else:
         qa_history = {}
 
-    qa_history[month_str] = rewards
+    reward_entries = []
+    for staff in qa_staff:
+        name = staff["name"]
+        acc_id = staff["id"]
+        total = rewards.get(name, 0)
+        reward_entries.append({
+            "name": name,
+            "id": acc_id,
+            "total": total
+        })
+
+    qa_history[month_str] = reward_entries
 
     with open(qa_history_file, "w") as f:
         json.dump(qa_history, f, indent=2)
+
 

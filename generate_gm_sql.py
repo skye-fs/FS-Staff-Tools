@@ -190,3 +190,19 @@ VALUES
         sql_lines.append(sql)
 
     await interaction.followup.send("```sql\n" + "\n".join(sql_lines) + "\n```")
+
+    # Save to gm_rewards_history.json (FOR VIEWING PAYMENT HISTORY)
+    gm_history_file = "gm_rewards_history.json"
+    if os.path.exists(gm_history_file):
+        with open(gm_history_file, "r") as f:
+            try:
+                gm_history = json.load(f)
+            except json.JSONDecodeError:
+                gm_history = {}
+    else:
+        gm_history = {}
+
+    gm_history[month_str] = rewards
+
+    with open(gm_history_file, "w") as f:
+        json.dump(gm_history, f, indent=2)

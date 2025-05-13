@@ -119,3 +119,20 @@ VALUES
     sql_combined = "\n".join(sql_lines)
     for chunk in chunk_message(sql_combined):
         await interaction.followup.send(chunk)
+
+    # Save to qa_rewards_history.json (FOR VIEWING PAYMENT HISTORY)
+    qa_history_file = "qa_rewards_history.json"
+    if os.path.exists(qa_history_file):
+        with open(qa_history_file, "r") as f:
+            try:
+                qa_history = json.load(f)
+            except json.JSONDecodeError:
+                qa_history = {}
+    else:
+        qa_history = {}
+
+    qa_history[month_str] = rewards
+
+    with open(qa_history_file, "w") as f:
+        json.dump(qa_history, f, indent=2)
+

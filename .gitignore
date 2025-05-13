@@ -3,6 +3,8 @@ accounts.json
 discord_activity.json
 payout_dates.json
 event_records.json
+qa_rewards_history.json
+gm_rewards_history.json
 __pycache__/
 dist/
 .idea/

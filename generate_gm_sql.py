@@ -90,7 +90,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
         try:
             ticket_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
             ticket_count = int(ticket_msg.content.strip())
-            await ticket_msg.add_reaction("<a:done:1363613944417222788>")
+            await ticket_msg.delete()
         except (asyncio.TimeoutError, ValueError):
             await ticket_prompt.delete()
             await interaction.followup.send(f"❌ Skipping {name} due to invalid or no ticket input.")
@@ -102,7 +102,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
         try:
             quota_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
             quota_bonus = BONUS_IF_MET_QUOTA if quota_msg.content.strip().lower() == "yes" else 0
-            await quota_msg.add_reaction("<a:done:1363613944417222788>")
+            await quota_msg.delete()
         except asyncio.TimeoutError:
             quota_bonus = 0
         await quota_prompt.delete()
@@ -114,7 +114,7 @@ async def generate_gm_sql(interaction: discord.Interaction):
             try:
                 shop_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
                 shop_ticket_bonus = int(shop_msg.content.strip())
-                await shop_msg.add_reaction("<a:done:1363613944417222788>")
+                await shop_msg.delete()
             except (asyncio.TimeoutError, ValueError):
                 shop_ticket_bonus = 0
             await shop_prompt.delete()

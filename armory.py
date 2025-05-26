@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import html
 import asyncio
 from playwright.async_api import async_playwright
+import httpx
 
 load_dotenv()
 
@@ -19,6 +20,9 @@ FELSONG_SESSION = os.getenv("FELSONG_SESSION")
 CSRF_TOKEN = os.getenv("CSRF_TOKEN")
 FELSONG_USERNAME = os.getenv("FELSONG_USERNAME")
 FELSONG_PASSWORD = os.getenv("FELSONG_PASSWORD")
+TWO_CAPTCHA_API_KEY = os.getenv("TWO_CAPTCHA_API_KEY")
+SITE_KEY = "6LdcE7gUAAAAAICvGm0wDYOcin727TlFCA0HqRcU"
+PAGE_URL = LOGIN_URL
 ENV_PATH = ".env"
 
 def update_env_file(session_value, csrf_value, env_path=ENV_PATH):
@@ -47,30 +51,89 @@ def update_env_file(session_value, csrf_value, env_path=ENV_PATH):
     with open(env_path, "w") as f:
         f.writelines(lines)
 
+async def solve_recaptcha():
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "http://2captcha.com/in.php",
+            data={
+                "key": TWO_CAPTCHA_API_KEY,
+                "method": "userrecaptcha",
+                "googlekey": SITE_KEY,
+                "pageurl": PAGE_URL,
+                "json": 1
+            }
+        )
+        json_resp = resp.json()
+        request_id = json_resp.get("request")
+        if not request_id or json_resp.get("status") != 1:
+            raise Exception(f"2Captcha submit error: {json_resp}")
+
+        fetch_url = f"http://2captcha.com/res.php?key={TWO_CAPTCHA_API_KEY}&action=get&id={request_id}&json=1"
+        for _ in range(24):
+            await asyncio.sleep(5)
+            res = await client.get(fetch_url)
+            res_json = res.json()
+            if res_json.get("status") == 1:
+                return res_json.get("request")
+            elif res_json.get("request") == "CAPCHA_NOT_READY":
+                continue
+            else:
+                raise Exception(f"2Captcha error: {res_json.get('request')}")
+        raise Exception("2Captcha solving timed out")
+
+# ONLY NEED TO BE DONE ONCE
 async def login_and_fetch_cookies():
     global FELSONG_SESSION, CSRF_TOKEN
-    print("[DEBUG] Starting Playwright login to fetch fresh cookies...")
+    print("[DEBUG] Starting Playwright to fetch fresh cookies.")
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
 
-        await page.goto(LOGIN_URL)
+        # presentation page
+        await page.goto("https://felsong.gg/en/presentation", wait_until="domcontentloaded")
+        await page.click("i.fa-solid.fa-angles-right")
 
-        await page.fill('input[name="username"]', FELSONG_USERNAME)
-        await page.fill('input[name="password"]', FELSONG_PASSWORD)
+        # redirect
+        await page.wait_for_url("https://felsong.gg/en/", timeout=5000)
 
-        await page.click('button.btn.btn-primary')
+        # login
+        await page.click('#form-register-light a[href$="/welcome/login"]')
 
-        print("[DEBUG] 90s to solve captcha")
-        try:
-            await page.wait_for_url(f"{BASE_URL}/research", timeout=90000)
-        except asyncio.TimeoutError:
-            print("[ERROR] Timeout waiting for login completion.")
+        # redirect
+        await page.wait_for_url("**/welcome/login", timeout=5000)
 
+        # credentials
+        await page.fill('form#login-form input[name="username"]', FELSONG_USERNAME)
+        await page.fill('form#login-form input[name="password"]', FELSONG_PASSWORD)
+
+        # solve captcha
+        print("[DEBUG] Solving captcha, this may take some time.")
+        token = await solve_recaptcha()
+
+        await page.evaluate(f'''
+            () => {{
+                const textarea = document.querySelector('textarea[name="g-recaptcha-response"]');
+                textarea.style.display = 'block';
+                textarea.value = "{token}";
+                textarea.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                textarea.dispatchEvent(new Event('change', {{ bubbles: true }}));
+            }}
+        ''')
+
+        # login
+        await page.click('form#login-form button.btn.btn-primary')
+
+        # redirect
+        await asyncio.sleep(5)
+
+        # initialize session
+        await page.goto("https://felsong.gg/en/community/research", wait_until="networkidle")
+        await asyncio.sleep(2)
+
+        # extract cookies
         cookies = await context.cookies()
-
         felsong_session = None
         csrf_cookie_name = None
         for c in cookies:
@@ -82,7 +145,7 @@ async def login_and_fetch_cookies():
         await browser.close()
 
         if not felsong_session or not csrf_cookie_name:
-            print("[ERROR] Could not find required cookies after login.")
+            print("[ERROR] Could not find required cookies!")
             return False
 
         FELSONG_SESSION = felsong_session

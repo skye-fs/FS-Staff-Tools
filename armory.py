@@ -3,7 +3,32 @@ import time
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+ENV_FILE = ".env"
+
+def update_env(key, value):
+    lines = []
+    if os.path.exists(ENV_FILE):
+        with open(ENV_FILE, "r") as f:
+            lines = f.readlines()
+    kv = {line.split("=")[0]: line.strip().split("=", 1)[1] for line in lines if "=" in line}
+    kv[key] = value
+    with open(ENV_FILE, "w") as f:
+        for k, v in kv.items():
+            f.write(f"{k}={v}\n")
+
+def prompt_for_tokens():
+    csrf = input("CSRF token: ").strip()
+    session_id = input("Session ID: ").strip()
+
+    cookie = f"felsong_session={session_id}; csrf_cookie_name={csrf}"
+
+    update_env("FELSONG_COOKIE", cookie)
+    update_env("FELSONG_CSRF", csrf)
+
+    # Reload .env
+    load_dotenv(override=True)
+
+prompt_for_tokens()
 
 BASE_URL = "https://felsong.gg/en/community"
 SEARCH_URL = f"{BASE_URL}/armory_research_characters"

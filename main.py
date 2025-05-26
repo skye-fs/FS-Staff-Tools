@@ -14,6 +14,7 @@ from payout_dates import payout_dates
 from event_records import view_events
 from record_event import record_event
 from view_reward_history import view_reward_history
+from armory import armory
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
@@ -44,6 +45,7 @@ class Client(commands.Bot):
                 self.tree.add_command(view_events, guild=guild)
                 self.tree.add_command(record_event, guild=guild)
                 self.tree.add_command(view_reward_history, guild=guild)
+                self.tree.add_command(armory, guild=guild)
 
             synced = await self.tree.sync(guild=guild)
             print(f"Synced {len(synced)} commands to guilds ({', '.join(f'{g.id} - {g.name}' for g in self.guilds if g.id in GUILD_IDS)})")

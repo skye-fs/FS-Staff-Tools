@@ -53,6 +53,7 @@ class Client(commands.Bot):
         except Exception as e:
             print(f'Error syncing commands: {e}')
 
+
 intents = discord.Intents.default()
 intents.message_content = True
 client = Client(command_prefix="%", intents=intents)

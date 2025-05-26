@@ -5,30 +5,20 @@ from dotenv import load_dotenv
 
 ENV_FILE = ".env"
 
-def update_env(key, value):
-    lines = []
-    if os.path.exists(ENV_FILE):
-        with open(ENV_FILE, "r") as f:
-            lines = f.readlines()
-    kv = {line.split("=")[0]: line.strip().split("=", 1)[1] for line in lines if "=" in line}
-    kv[key] = value
-    with open(ENV_FILE, "w") as f:
-        for k, v in kv.items():
-            f.write(f"{k}={v}\n")
-
-def prompt_for_tokens():
-    csrf = input("CSRF token: ").strip()
+# Ask for session and CSRF token, and update .env
+def update_tokens():
     session_id = input("Session ID: ").strip()
+    csrf_token = input("csrf_token: ").strip()
 
-    cookie = f"felsong_session={session_id}; csrf_cookie_name={csrf}"
+    cookie = f"felsong_session={session_id}; csrf_cookie_name={csrf_token}"
 
-    update_env("FELSONG_COOKIE", cookie)
-    update_env("FELSONG_CSRF", csrf)
+    with open(ENV_FILE, "w") as f:
+        f.write(f"FELSONG_COOKIE={cookie}\n")
+        f.write(f"FELSONG_CSRF={csrf_token}\n")
 
-    # Reload .env
     load_dotenv(override=True)
 
-prompt_for_tokens()
+update_tokens()
 
 BASE_URL = "https://felsong.gg/en/community"
 SEARCH_URL = f"{BASE_URL}/armory_research_characters"
@@ -62,6 +52,9 @@ def search_character(name):
         try:
             data = resp.json()
         except Exception as e:
+            if "<!DOCTYPE html>" in resp.text:
+                print("Session expired or tokens are invalid. Stopping.")
+                return "expired"
             print(f"Failed to parse JSON: {e}")
             print("Response text:", resp.text[:500])
             return None
@@ -83,6 +76,8 @@ if __name__ == "__main__":
     target = "Skye"
     while True:
         result = search_character(target)
+        if result == "expired":
+            break
         if result:
             print("Found:", result)
             print(f"Armory link: https://felsong.gg/en/community/armory/{result['armory_id']}")

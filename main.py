@@ -25,6 +25,8 @@ GUILD_IDS = [
     873228748458188841
 ]
 
+KEYWORD_IDS = 516459534714404874
+
 class Client(commands.Bot):
     async def on_ready(self):
         print(f'Logged on as {self.user}.')
@@ -53,6 +55,24 @@ class Client(commands.Bot):
         except Exception as e:
             print(f'Error syncing commands: {e}')
 
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+
+        if 'skye' in message.content.lower():
+            try:
+                user = await self.fetch_user(KEYWORD_IDS)
+                if user:
+                    channel = message.channel
+                    msg_link = f"https://discord.com/channels/{message.guild.id}/{channel.id}/{message.id}"
+                    dm_content = (
+                        f"**You were mentioned in <#{channel.id}> by {message.author.mention}**\n\n"
+                        f"Message link: {msg_link}\n"
+                        f"Message content: {message.content}"
+                    )
+                    await user.send(dm_content)
+            except Exception as e:
+                print(f"Error sending DM: {e}")
 
 intents = discord.Intents.default()
 intents.message_content = True

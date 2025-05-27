@@ -19,11 +19,9 @@ async def restore_character(name: str):
         await page.goto("https://legion.wow-freakz.com/index.php", wait_until="domcontentloaded")
 
         # credentials
-        await page.evaluate(f'''
-            document.querySelector('input[name="user"]').value = "{WOW_FREAKZ_USER}";
-            document.querySelector('input[name="pass"]').value = "{WOW_FREAKZ_PASS}";
-            document.querySelector('input[name="submit"][value="Login"]').click();
-        ''')
+        await page.fill('input[name="user"]', WOW_FREAKZ_USER)
+        await page.fill('input[name="pass"]', WOW_FREAKZ_PASS)
+        await page.click('input[name="submit"][value="Login"]')
 
         await page.wait_for_selector('a.medium_link[href="/admin/deleted_characters.php"]')
 

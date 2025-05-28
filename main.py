@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
+from datetime import datetime
+
+# slash command imports
 from add_staff import add_staff
 from remove_staff import remove_staff
 from view_staff import view_staff
@@ -16,6 +19,7 @@ from view_reward_history import view_reward_history
 from armory import armory
 from restore_char import restore_char
 
+# load .env variables
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 FELSONG_SESSION = os.getenv("FELSONG_SESSION")
@@ -27,14 +31,24 @@ GUILD_IDS = [
 ]
 
 KEYWORD_IDS = 516459534714404874
+RESUME_LOG_CHANNEL_ID = 1366862354972676166
 
 class Client(commands.Bot):
     async def on_ready(self):
-        print(f'Logged on as {self.user}.')
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        session_id = self.ws.session_id
 
+        # Connection log message
+        msg = f"[{now}] [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: {session_id})."
+        channel = self.get_channel(RESUME_LOG_CHANNEL_ID)
+
+        await channel.send(msg)
+        print(f'Logged on as {self.user}.')
+        self.start_time = datetime.now()
         activity = discord.Game("staff tools with more to come soon.")
         await self.change_presence(status=discord.Status.online, activity=activity)
 
+        # register slash commands
         try:
             for guild_id in GUILD_IDS:
                 guild = discord.Object(id=guild_id)
@@ -57,6 +71,7 @@ class Client(commands.Bot):
         except Exception as e:
             print(f'Error syncing commands: {e}')
 
+    # mention logs
     async def on_message(self, message):
         if message.author.bot:
             return
@@ -75,6 +90,20 @@ class Client(commands.Bot):
                     await user.send(dm_content)
             except Exception as e:
                 print(f"Error sending DM: {e}")
+
+    # session resume logs
+    async def on_resume(self, session_id):
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        uptime_delta = datetime.now() - self.start_time
+        uptime_str = str(uptime_delta).split('.')[0]
+
+        msg = (
+            f"[{now}] [INFO] discord.gateway: Shard ID None has successfully RESUMED session {session_id}.\n"
+            f"Uptime: {uptime_str}"
+        )
+        channel = self.get_channel(RESUME_LOG_CHANNEL_ID)
+        await channel.send(msg)
+
 
 intents = discord.Intents.default()
 intents.message_content = True

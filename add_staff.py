@@ -7,16 +7,10 @@ ACCOUNTS_FILE = "accounts.json"
 
 def load_account_data():
     if not os.path.exists(ACCOUNTS_FILE) or os.path.getsize(ACCOUNTS_FILE) == 0:
-        return {"GM": [], "QA": [], "Helper": []}
+        return {"GM": [], "QA": []}
 
     with open(ACCOUNTS_FILE, 'r') as f:
-        data = json.load(f)
-
-    for key in ["GM", "QA", "Helper"]:
-        if key not in data:
-            data[key] = []
-
-    return data
+        return json.load(f)
 
 def save_account_data(data):
     with open(ACCOUNTS_FILE, 'w') as f:
@@ -32,8 +26,7 @@ def save_account_data(data):
 )
 @app_commands.choices(staff_type=[
     app_commands.Choice(name="GM", value="GM"),
-    app_commands.Choice(name="QA", value="QA"),
-    app_commands.Choice(name="Helper", value="Helper")
+    app_commands.Choice(name="QA", value="QA")
 ])
 
 @app_commands.choices(staff_rank=[
@@ -41,8 +34,7 @@ def save_account_data(data):
     app_commands.Choice(name="Regular GM", value="Regular GM"),
     app_commands.Choice(name="Senior GM", value="Senior GM"),
     app_commands.Choice(name="Head GM", value="Head GM"),
-    app_commands.Choice(name="Server Manager", value="Server Manager"),
-    app_commands.Choice(name="Discord Helper", value="Discord Helper")
+    app_commands.Choice(name="Server Manager", value="Server Manager")
 ])
 
 async def add_staff(
@@ -51,12 +43,12 @@ async def add_staff(
     staff_rank: app_commands.Choice[str],
     name: str,
     playacc_id: int,
-    discord_id: str = None  # optional for QA and Helper
+    discord_id: str = None  # discord_id is an OPTIONAL argument for QA ONLY
 ):
 
     if staff_type.value == "GM" and not discord_id:
         await interaction.response.send_message(
-            "❌ You must provide a Discord ID when adding a GM. Please run the command with the `discord_id` field.",
+            "❌ You must provide a Discord ID when adding a GM. Please run the command with the `discord_id` argument.",
             ephemeral=False
         )
         return
@@ -72,7 +64,7 @@ async def add_staff(
 
     new_entry = {"name": name, "id": playacc_id, "rank": staff_rank.value}
     if discord_id:
-        new_entry["discord_id"] = discord_id
+        new_entry["discord_id"] = discord_id  # Only add discord_id if provided
 
     data[staff_type.value].append(new_entry)
     save_account_data(data)

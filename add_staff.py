@@ -6,11 +6,19 @@ import os
 ACCOUNTS_FILE = "accounts.json"
 
 def load_account_data():
+    default_data = {"GM": [], "QA": [], "Helper": []}
+
     if not os.path.exists(ACCOUNTS_FILE) or os.path.getsize(ACCOUNTS_FILE) == 0:
-        return {"GM": [], "QA": []}
+        return default_data
 
     with open(ACCOUNTS_FILE, 'r') as f:
-        return json.load(f)
+        data = json.load(f)
+
+    for key in default_data:
+        if key not in data:
+            data[key] = []
+
+    return data
 
 def save_account_data(data):
     with open(ACCOUNTS_FILE, 'w') as f:
@@ -26,15 +34,18 @@ def save_account_data(data):
 )
 @app_commands.choices(staff_type=[
     app_commands.Choice(name="GM", value="GM"),
-    app_commands.Choice(name="QA", value="QA")
+    app_commands.Choice(name="QA", value="QA"),
+    app_commands.Choice(name="Helper", value="Helper")
 ])
 
 @app_commands.choices(staff_rank=[
-    app_commands.Choice(name="Regular QA", value="Regular QA"),
     app_commands.Choice(name="Regular GM", value="Regular GM"),
     app_commands.Choice(name="Senior GM", value="Senior GM"),
     app_commands.Choice(name="Head GM", value="Head GM"),
-    app_commands.Choice(name="Server Manager", value="Server Manager")
+    app_commands.Choice(name="Server Manager", value="Server Manager"),
+    app_commands.Choice(name="Regular QA", value="Regular QA"),
+    app_commands.Choice(name="Discord Helper", value="Discord Helper")
+
 ])
 
 async def add_staff(
@@ -46,9 +57,9 @@ async def add_staff(
     discord_id: str = None  # discord_id is an OPTIONAL argument for QA ONLY
 ):
 
-    if staff_type.value == "GM" and not discord_id:
+    if staff_type.value in ("GM", "Helper") and not discord_id:
         await interaction.response.send_message(
-            "❌ You must provide a Discord ID when adding a GM. Please run the command with the `discord_id` argument.",
+            "❌ You must provide a Discord ID when adding a GM/Helper. Run the command again with the `discord_id` field.",
             ephemeral=False
         )
         return

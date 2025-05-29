@@ -13,10 +13,17 @@ GUILD_ID = 873228748458188841
 CHANNEL_IDS = [873265789157908510, 877411686192119818]
 
 def load_account_data():
-    if not os.path.exists(ACCOUNTS_FILE):
-        return {"GM": [], "QA": []}
+    if not os.path.exists(ACCOUNTS_FILE) or os.path.getsize(ACCOUNTS_FILE) == 0:
+        return {"GM": [], "QA": [], "Helper": []}
+
     with open(ACCOUNTS_FILE, 'r') as f:
-        return json.load(f)
+        data = json.load(f)
+
+    for key in ["GM", "QA", "Helper"]:
+        if key not in data:
+            data[key] = []
+
+    return data
 
 def save_discord_activity(data):
     with open(ACTIVITY_FILE, 'w') as f:

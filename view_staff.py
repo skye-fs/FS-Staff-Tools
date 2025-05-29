@@ -5,9 +5,15 @@ from discord import app_commands
 def load_account_data():
     try:
         with open('accounts.json', 'r') as f:
-            return json.load(f)
+            data = json.load(f)
     except FileNotFoundError:
-        return {"GM": [], "QA": []}
+        data = {}
+
+    for key in ["GM", "QA", "Helper"]:
+        if key not in data:
+            data[key] = []
+
+    return data
 
 def format_staff_list(staff_list, include_discord=False):
     if not staff_list:
@@ -28,12 +34,16 @@ def format_staff_list(staff_list, include_discord=False):
         )
     return f"```\n{header}{divider}{body}\n```"
 
-
 @app_commands.command(name="view-staff", description="View all staff members.")
 async def view_staff(interaction: discord.Interaction):
     staff_data = load_account_data()
     gm_block = format_staff_list(staff_data["GM"], include_discord=True)
     qa_block = format_staff_list(staff_data["QA"])
+    helper_block = format_staff_list(staff_data.get("Helper", []))
 
-    response = f"<:felsong:1364766519149723760> __**GM List**__\n{gm_block}\n<:felsong:1364766519149723760> __**QA List**__\n{qa_block}"
+    response = (
+        f"<:felsong:1364766519149723760> __**GM List**__\n{gm_block}"
+        f"\n<:felsong:1364766519149723760> __**QA List**__\n{qa_block}"
+        f"\n<:felsong:1364766519149723760> __**Helper List**__\n{helper_block}"
+    )
     await interaction.response.send_message(response)

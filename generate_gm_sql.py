@@ -7,7 +7,7 @@ import os
 ACCOUNTS_FILE = "accounts.json"
 ACTIVITY_FILE = "discord_activity.json"
 
-BONUS_IF_MET_QUOTA = 600  # SUBJECT TO CHANGE
+BONUS_IF_MET_QUOTA = 600  # SUBJECT TO CHANGE. QUOTA = How active
 
 def load_account_data():
     if not os.path.exists(ACCOUNTS_FILE):

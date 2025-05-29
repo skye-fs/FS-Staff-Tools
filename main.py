@@ -38,7 +38,7 @@ class Client(commands.Bot):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         session_id = self.ws.session_id
 
-        # Connection log message
+        # connection log
         msg = f"[{now}] [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: {session_id})."
         channel = self.get_channel(RESUME_LOG_CHANNEL_ID)
 
@@ -90,20 +90,6 @@ class Client(commands.Bot):
                     await user.send(dm_content)
             except Exception as e:
                 print(f"Error sending DM: {e}")
-
-    # session resume logs
-    async def on_resume(self, session_id):
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        uptime_delta = datetime.now() - self.start_time
-        uptime_str = str(uptime_delta).split('.')[0]
-
-        msg = (
-            f"[{now}] [INFO] discord.gateway: Shard ID None has successfully RESUMED session {session_id}.\n"
-            f"Uptime: {uptime_str}"
-        )
-        channel = self.get_channel(RESUME_LOG_CHANNEL_ID)
-        await channel.send(msg)
-
 
 intents = discord.Intents.default()
 intents.message_content = True

@@ -54,7 +54,7 @@ async def add_staff(
     staff_rank: app_commands.Choice[str],
     name: str,
     playacc_id: int,
-    discord_id: str = None  # discord_id is an OPTIONAL argument for QA ONLY
+    discord_id: str = None  # discord_id is an OPTIONAL field for QA ONLY
 ):
 
     if staff_type.value in ("GM", "Helper") and not discord_id:
@@ -75,7 +75,7 @@ async def add_staff(
 
     new_entry = {"name": name, "id": playacc_id, "rank": staff_rank.value}
     if discord_id:
-        new_entry["discord_id"] = discord_id  # Only add discord_id if provided
+        new_entry["discord_id"] = discord_id
 
     data[staff_type.value].append(new_entry)
     save_account_data(data)

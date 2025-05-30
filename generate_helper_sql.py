@@ -8,17 +8,20 @@ ACCOUNTS_FILE = "accounts.json"
 ACTIVITY_FILE = "discord_activity.json"
 HISTORY_FILE = "helper_rewards_history.json"
 
+
 def load_account_data():
     if not os.path.exists(ACCOUNTS_FILE):
         return {"GM": [], "QA": [], "Helper": []}
     with open(ACCOUNTS_FILE, 'r') as f:
         return json.load(f)
 
+
 def load_discord_activity():
     if not os.path.exists(ACTIVITY_FILE):
         return {}
     with open(ACTIVITY_FILE, 'r') as f:
         return json.load(f)
+
 
 @app_commands.command(name="generate-helper-sql", description="Generate SQL for Helper rewards.")
 async def generate_helper_sql(interaction: discord.Interaction):
@@ -31,6 +34,28 @@ async def generate_helper_sql(interaction: discord.Interaction):
         period_msg = await interaction.client.wait_for("message", timeout=60.0, check=check)
         period_str = period_msg.content.strip()
         await period_msg.add_reaction("<a:done:1363613944417222788>")
+
+        payout_file = "payout_dates.json"
+        payout_data = {"GM": [], "QA": [], "Helper": []}
+
+        if os.path.exists(payout_file):
+            with open(payout_file, "r") as f:
+                try:
+                    payout_data = json.load(f)
+                    if not isinstance(payout_data, dict) or "Helper" not in payout_data:
+                        payout_data = {"GM": [], "QA": [], "Helper": []}
+                except json.JSONDecodeError:
+                    payout_data = {"GM": [], "QA": [], "Helper": []}
+
+        helper_id = len(payout_data["Helper"]) + 1
+        payout_data["Helper"].append({
+            "id": helper_id,
+            "payout_date": period_str
+        })
+
+        with open(payout_file, "w") as f:
+            json.dump(payout_data, f, indent=2)
+
     except asyncio.TimeoutError:
         await interaction.followup.send("⏰ Timed out waiting for input.")
         return
@@ -60,7 +85,7 @@ async def generate_helper_sql(interaction: discord.Interaction):
             "total": total
         })
 
-        updated_text = "🧮 Calculating Helper rewards...\n" + "\n".join(
+        updated_text = "Calculating Helper rewards...\n" + "\n".join(
             f"{r['name']} - {r['total']}{' 👈' if i == index else ''}" for i, r in enumerate(rewards)
         )
         await summary_msg.edit(content=updated_text)

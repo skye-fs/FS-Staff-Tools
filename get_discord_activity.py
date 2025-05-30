@@ -52,9 +52,9 @@ async def get_discord_activity(interaction: discord.Interaction):
         return
 
     account_data = load_account_data()
-    gm_entries = account_data.get("GM", [])
+    discord_id_entries = account_data.get("GM", []) + account_data.get("Helper", [])
 
-    gm_discord_ids = {str(gm["discord_id"]) for gm in gm_entries if "discord_id" in gm}
+    gm_discord_ids = {str(entry["discord_id"]) for entry in discord_id_entries if "discord_id" in entry}
     message_counts = {gm_id: {"support": 0, "chat": 0} for gm_id in gm_discord_ids}
 
     await interaction.followup.send("⏳ Counting messages...  This might take a while.")

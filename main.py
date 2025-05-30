@@ -18,6 +18,7 @@ from record_event import record_event
 from view_reward_history import view_reward_history
 from armory import armory
 from restore_char import restore_char
+from generate_helper_sql import generate_helper_sql
 
 # load .env variables
 load_dotenv()
@@ -65,6 +66,7 @@ class Client(commands.Bot):
                 self.tree.add_command(view_reward_history, guild=guild)
                 self.tree.add_command(armory, guild=guild)
                 self.tree.add_command(restore_char, guild=guild)
+                self.tree.add_command(generate_helper_sql, guild=guild)
 
             synced = await self.tree.sync(guild=guild)
             print(f"Synced {len(synced)} commands to guilds ({', '.join(f'{g.id} - {g.name}' for g in self.guilds if g.id in GUILD_IDS)})")

@@ -13,12 +13,12 @@ def load_reward_history(role: str):
         except json.JSONDecodeError:
             return {}
 
-@app_commands.command(name="view-reward-history", description="View past GM or QA reward history.")
-@app_commands.describe(role="Select GM or QA")
+@app_commands.command(name="view-reward-history", description="View past reward history.")
+@app_commands.describe(role="Select staff type")
 async def view_reward_history(interaction: discord.Interaction, role: str):
     role = role.upper()
-    if role not in ["GM", "QA"]:
-        await interaction.response.send_message("Invalid role. Choose either GM or QA.", ephemeral=True)
+    if role not in ["GM", "QA", "HELPER"]:
+        await interaction.response.send_message("Invalid role. Choose either GM, QA or Helper", ephemeral=True)
         return
 
     history = load_reward_history(role)

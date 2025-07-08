@@ -10,7 +10,7 @@ from remove_staff import remove_staff
 from view_staff import view_staff
 from generate_qa_sql import generate_qa_sql
 from generate_gm_sql import generate_gm_sql
-from wipe_donotuse import wipe_do_not_use
+from wipe_staff import wipe_do_not_use
 from wipe_events import wipe_events
 from get_discord_activity import get_discord_activity
 from payout_dates import payout_dates

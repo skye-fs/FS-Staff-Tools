@@ -8,7 +8,7 @@ def save_account_data(data):
     with open(ACCOUNTS_FILE, 'w') as f:
         json.dump(data, f, indent=4)
 
-@app_commands.command(name="wipe", description="TESTING PURPOSE DO NOT USE DO NOT USE DO NOT USE DO NOT USE")
+@app_commands.command(name="wipe-staff", description="TESTING PURPOSE. WIPES ALL STAFF - DO NOT USE")
 async def wipe_do_not_use(interaction: discord.Interaction):
     empty_data = {"GM": [], "QA": []}
     save_account_data(empty_data)

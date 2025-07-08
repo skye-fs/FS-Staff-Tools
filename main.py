@@ -11,6 +11,7 @@ from view_staff import view_staff
 from generate_qa_sql import generate_qa_sql
 from generate_gm_sql import generate_gm_sql
 from wipe_donotuse import wipe_do_not_use
+from wipe_events import wipe_events
 from get_discord_activity import get_discord_activity
 from payout_dates import payout_dates
 from event_records import view_events
@@ -67,6 +68,7 @@ class Client(commands.Bot):
                 self.tree.add_command(armory, guild=guild)
                 self.tree.add_command(restore_char, guild=guild)
                 self.tree.add_command(generate_helper_sql, guild=guild)
+                self.tree.add_command(wipe_events, guild=guild)
 
             synced = await self.tree.sync(guild=guild)
             print(f"Synced {len(synced)} commands to guilds ({', '.join(f'{g.id} - {g.name}' for g in self.guilds if g.id in GUILD_IDS)})")

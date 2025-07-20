@@ -1,8 +1,9 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
 from datetime import datetime
+import pytz
 
 # slash command imports
 from add_staff import add_staff
@@ -26,6 +27,7 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 FELSONG_SESSION = os.getenv("FELSONG_SESSION")
 CSRF_TOKEN = os.getenv("CSRF_TOKEN")
+REMINDER_CHANNEL_ID = 1366862354972676166  # weekly event reminder channel id
 
 GUILD_IDS = [
     785816801602830346,
@@ -36,6 +38,10 @@ KEYWORD_IDS = 516459534714404874
 RESUME_LOG_CHANNEL_ID = 1366862354972676166
 
 class Client(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.reminder_sent = False
+
     async def on_ready(self):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         session_id = self.ws.session_id
@@ -47,7 +53,7 @@ class Client(commands.Bot):
         await channel.send(msg)
         print(f'Logged on as {self.user}.')
         self.start_time = datetime.now()
-        activity = discord.Game("staff tools with more to come soon.")
+        activity = discord.Game("/armory")
         await self.change_presence(status=discord.Status.online, activity=activity)
 
         # register slash commands
@@ -75,7 +81,8 @@ class Client(commands.Bot):
         except Exception as e:
             print(f'Error syncing commands: {e}')
 
-    # mention logs
+        self.weekly_reminder.start()
+
     async def on_message(self, message):
         if message.author.bot:
             return
@@ -94,6 +101,21 @@ class Client(commands.Bot):
                     await user.send(dm_content)
             except Exception as e:
                 print(f"Error sending DM: {e}")
+
+    @tasks.loop(minutes=1)
+    async def weekly_reminder(self):
+        now = datetime.now(pytz.timezone("Europe/London"))
+        if now.weekday() == 6 and now.hour == 17 and now.minute == 0:
+            if not self.reminder_sent:
+                channel = self.get_channel(REMINDER_CHANNEL_ID)
+                if channel:
+                    await channel.send(
+                        content="<@&873242778413457458> - Reminder to host weekly **Where am I** event on Monday. Let us know here if you're hosting.",
+                        allowed_mentions=discord.AllowedMentions(roles=True)
+                    )
+                self.reminder_sent = True
+        else:
+            self.reminder_sent = False
 
 intents = discord.Intents.default()
 intents.message_content = True

@@ -78,7 +78,6 @@ def format_event_pages(event_list, max_chars=1900):
     pages.append(current_page)
     return pages
 
-
 @app_commands.command(name="view-events", description="View all recorded GM events.")
 async def view_events(interaction: discord.Interaction):
     await interaction.response.defer()

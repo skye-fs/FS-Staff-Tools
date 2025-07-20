@@ -27,7 +27,7 @@ load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 FELSONG_SESSION = os.getenv("FELSONG_SESSION")
 CSRF_TOKEN = os.getenv("CSRF_TOKEN")
-REMINDER_CHANNEL_ID = 1366862354972676166  # weekly event reminder channel id
+REMINDER_CHANNEL_ID = 1374080118418309250  # weekly event reminder channel id
 
 GUILD_IDS = [
     785816801602830346,
